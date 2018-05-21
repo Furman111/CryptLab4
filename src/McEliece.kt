@@ -12,16 +12,25 @@ data class SecretKey(
 
 class McEliece {
 
-    fun encrypt(openKey: OpenKey, messageBlock: List<Int>): Matrix {
+    private lateinit var S: Matrix
+    private lateinit var G: Matrix
+    private lateinit var P: Matrix
+    private lateinit var openG: Matrix
 
-        if (openKey.gMatrix.rowDimension != messageBlock.size)
+    private val n = 7
+    private val k = 4
+    private val t = 1
+
+    init {
+        generateKey()
+    }
+
+    fun getOpenKey(): OpenKey = OpenKey(openG, t)
+
+    fun encrypt(openKey: OpenKey, messageBlock: Matrix): Matrix {
+
+        if (openKey.gMatrix.rowDimension != messageBlock.columnDimension)
             throw IllegalArgumentException("Length of messageBlock must be equal to gMatrix's rows count")
-
-        val messageMatrix = Matrix.constructWithCopy(arrayOf(
-                DoubleArray(messageBlock.size) {
-                    messageBlock[it].toDouble()
-                }
-        ))
 
 /*        val errorMatrix = Matrix.constructWithCopy(arrayOf(
                 doubleArrayOf(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0)
@@ -33,11 +42,7 @@ class McEliece {
             false
         }
         var errors = 0
-        val errorMatrix = Matrix.constructWithCopy(arrayOf(
-                DoubleArray(n) {
-                    0.0
-                }
-        ))
+        val errorMatrix = zerosMatrix(1, n)
         while (errors < openKey.t) {
             val ind = random.nextInt(n)
             if (!errorValues[ind]) {
@@ -46,29 +51,51 @@ class McEliece {
             }
         }
 
-        val c = messageMatrix.times(openKey.gMatrix).plus(errorMatrix)
-        for (i in 0 until c.columnDimension) {
-            c.set(0, i, c[0, i] % 2)
-        }
-
-        return c
+        return messageBlock.times(openKey.gMatrix).plus(errorMatrix).asBinary
 
     }
 
-    fun generateKey(): Pair<OpenKey, SecretKey> {
+    fun decrypt(encrypted: Matrix): Matrix {
+        val cc = encrypted.times(P.inverse())
 
-        val G = Matrix.constructWithCopy(
+        val H = Matrix.constructWithCopy(
+                arrayOf(
+                        doubleArrayOf(0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 1.0),
+                        doubleArrayOf(1.0, 0.0, 1.0, 1.0, 0.0, 1.0, 0.0),
+                        doubleArrayOf(1.0, 1.0, 0.0, 1.0, 1.0, 0.0, 0.0)
+                )
+        )
+
+        do {
+            val syndrom = H.times(cc.transpose()).asBinary
+            if (!syndrom.isZeros) {
+                val errorPosition = findErrorPosition(H, syndrom)
+                cc.set(0, errorPosition, (cc.get(0, errorPosition) + 1) % 2)
+            }
+        } while (!syndrom.isZeros)
+
+        val code = Matrix(
+                arrayOf(
+                        DoubleArray(4) {
+                            cc[0, it]
+                        }
+                )
+        )
+
+        return code.times(S.transpose())
+
+    }
+
+    private fun generateKey() {
+
+        G = Matrix.constructWithCopy(
                 arrayOf(
                         doubleArrayOf(1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0),
                         doubleArrayOf(0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0),
                         doubleArrayOf(0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0),
                         doubleArrayOf(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0)))
 
-        val n = 7
-        val k = 4
-        val t = 1
-
-/*        val S = Matrix.constructWithCopy(
+/*        S = Matrix.constructWithCopy(
                 arrayOf(
                         doubleArrayOf(1.0, 1.0, 0.0, 1.0),
                         doubleArrayOf(1.0, 0.0, 0.0, 1.0),
@@ -77,7 +104,7 @@ class McEliece {
                 )
         )*/
 
-        val S = Matrix.identity(k, k)
+        S = zerosMatrix(k, k)
 
         val random = Random()
         do {
@@ -100,10 +127,7 @@ class McEliece {
                 )
         )*/
 
-        val P = Matrix.identity(n, n)
-        for (i in 0 until n) {
-            P.set(i, i, 0.0)
-        }
+        P = zerosMatrix(n, n)
 
 
         val columnsIsBusy = MutableList(n) {
@@ -118,25 +142,7 @@ class McEliece {
             columnsIsBusy[colInd] = true
         }
 
-        val openG = S.times(G).times(P)
-
-        for (i in 0 until openG.rowDimension) {
-            for (j in 0 until openG.columnDimension) {
-                openG.set(i, j, openG[i, j] % 2)
-            }
-        }
-
-        return Pair(
-                OpenKey(
-                        openG,
-                        t
-                ),
-                SecretKey(
-                        S,
-                        G,
-                        P
-                )
-        )
+        openG = S.times(G).times(P).asBinary
 
     }
 
