@@ -27,10 +27,6 @@ class McEliece {
         if (openKey.gMatrix.rowDimension != messageBlock.columnDimension)
             throw IllegalArgumentException("Length of messageBlock must be equal to gMatrix's rows count")
 
-/*        val errorMatrix = Matrix.constructWithCopy(arrayOf(
-                doubleArrayOf(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0)
-        ))*/
-
         val random = Random()
         val n = openKey.gMatrix.columnDimension
         val errorValues = MutableList(n) {
@@ -90,15 +86,6 @@ class McEliece {
                         doubleArrayOf(0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0),
                         doubleArrayOf(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0))).asBinary
 
-/*        S = Matrix.constructWithCopy(
-                arrayOf(
-                        doubleArrayOf(1.0, 1.0, 0.0, 1.0),
-                        doubleArrayOf(1.0, 0.0, 0.0, 1.0),
-                        doubleArrayOf(0.0, 1.0, 1.0, 1.0),
-                        doubleArrayOf(1.0, 1.0, 0.0, 0.0)
-                )
-        )*/
-
         val random = Random()
 
 
@@ -111,18 +98,6 @@ class McEliece {
                 S.set(rowInd, colInd, if (random.nextBoolean()) 1.0 else 0.0)
             }
         } while (S.det() == 0.0)
-
-/*        val P = Matrix.constructWithCopy(
-                arrayOf(
-                        doubleArrayOf(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                        doubleArrayOf(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0),
-                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0),
-                        doubleArrayOf(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
-                        doubleArrayOf(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0),
-                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
-                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0)
-                )
-        )*/
 
         P = zerosMatrix(n, n)
 

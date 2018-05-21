@@ -1,16 +1,16 @@
 fun main(args: Array<String>) {
 
-    val message = listOf(1, 0, 1, 0)
+    val message = "Hello, world!"
 
     val alice = McEliece()
     val bob = McEliece()
 
     val aliceOpenKey = alice.getOpenKey()
 
-    val bobEncrypted = bob.encrypt(aliceOpenKey, message.asMatrix)
-    val aliceDecrypted = alice.decrypt(bobEncrypted).asList
+    val encryptedMessage = message.encrypt(bob, aliceOpenKey)
+    val decryptedMessage = encryptedMessage.decrypt(alice)
 
     println("Message: $message")
-    println("Decoded message: $aliceDecrypted")
+    println("Decoded message: $decryptedMessage")
 
 }
