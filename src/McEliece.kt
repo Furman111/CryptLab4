@@ -1,17 +1,6 @@
 import Jama.Matrix
 import java.util.*
 
-private const val n = 7
-private const val k = 4
-private const val t = 1
-
-val G = Matrix.constructWithCopy(
-        arrayOf(
-                doubleArrayOf(1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0),
-                doubleArrayOf(0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0),
-                doubleArrayOf(0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0),
-                doubleArrayOf(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0)))
-
 data class OpenKey(
         val gMatrix: Matrix,
         val t: Int)
@@ -23,7 +12,57 @@ data class SecretKey(
 
 class McEliece {
 
+    fun encrypt(openKey: OpenKey, messageBlock: List<Int>): Matrix {
+
+        if (openKey.gMatrix.rowDimension != messageBlock.size)
+            throw IllegalArgumentException("Length of messageBlock must be equal to gMatrix's rows count")
+
+        val messageMatrix = Matrix.constructWithCopy(arrayOf(
+                DoubleArray(messageBlock.size) {
+                    messageBlock[it].toDouble()
+                }
+        ))
+
+        val random = Random()
+        val n = openKey.gMatrix.columnDimension
+        val errorValues = MutableList(n) {
+            false
+        }
+        var errors = 0
+        val errorMatrix = Matrix.constructWithCopy(arrayOf(
+                DoubleArray(n) {
+                    0.0
+                }
+        ))
+        while (errors < openKey.t) {
+            val ind = random.nextInt(n)
+            if (!errorValues[ind]) {
+                errorMatrix.set(0, ind, 1.0)
+                errors++
+            }
+        }
+
+        val c = messageMatrix.times(openKey.gMatrix).plus(errorMatrix)
+        for (i in 0 until c.columnDimension) {
+            c.set(0, i, c[0, i] % 2)
+        }
+
+        return c
+
+    }
+
     fun generateKey(): Pair<OpenKey, SecretKey> {
+
+        val G = Matrix.constructWithCopy(
+                arrayOf(
+                        doubleArrayOf(1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0),
+                        doubleArrayOf(0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0),
+                        doubleArrayOf(0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0)))
+
+        val n = 7
+        val k = 4
+        val t = 1
 
 /*        val S = Matrix.constructWithCopy(
                 arrayOf(
