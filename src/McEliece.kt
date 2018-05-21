@@ -25,6 +25,15 @@ class McEliece {
 
     fun generateKey(): Pair<OpenKey, SecretKey> {
 
+/*        val S = Matrix.constructWithCopy(
+                arrayOf(
+                        doubleArrayOf(1.0, 1.0, 0.0, 1.0),
+                        doubleArrayOf(1.0, 0.0, 0.0, 1.0),
+                        doubleArrayOf(0.0, 1.0, 1.0, 1.0),
+                        doubleArrayOf(1.0, 1.0, 0.0, 0.0)
+                )
+        )*/
+
         val S = Matrix.identity(k, k)
 
         val random = Random()
@@ -35,6 +44,18 @@ class McEliece {
                 S.set(rowInd, colInd, if (random.nextBoolean()) 1.0 else 0.0)
             }
         } while (S.det() == 0.0)
+
+/*        val P = Matrix.constructWithCopy(
+                arrayOf(
+                        doubleArrayOf(0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0),
+                        doubleArrayOf(1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0),
+                        doubleArrayOf(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+                )
+        )*/
 
         val P = Matrix.identity(n, n)
         for (i in 0 until n) {
