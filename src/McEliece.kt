@@ -23,6 +23,10 @@ class McEliece {
                 }
         ))
 
+/*        val errorMatrix = Matrix.constructWithCopy(arrayOf(
+                doubleArrayOf(0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0)
+        ))*/
+
         val random = Random()
         val n = openKey.gMatrix.columnDimension
         val errorValues = MutableList(n) {
