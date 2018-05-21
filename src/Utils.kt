@@ -1,4 +1,5 @@
 import Jama.Matrix
+import java.lang.Math.abs
 
 val List<Int>.asMatrix: Matrix
     get() = Matrix.constructWithCopy(arrayOf(
@@ -16,7 +17,7 @@ val Matrix.asBinary: Matrix
     get() = apply {
         for (i in 0 until rowDimension)
             for (j in 0 until columnDimension) {
-                set(i, j, get(i, j) % 2)
+                set(i, j, abs(get(i, j) % 2))
             }
     }
 

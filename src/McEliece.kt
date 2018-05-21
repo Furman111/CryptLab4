@@ -5,11 +5,6 @@ data class OpenKey(
         val gMatrix: Matrix,
         val t: Int)
 
-data class SecretKey(
-        val S: Matrix,
-        val G: Matrix,
-        val P: Matrix)
-
 class McEliece {
 
     private lateinit var S: Matrix
@@ -56,7 +51,7 @@ class McEliece {
     }
 
     fun decrypt(encrypted: Matrix): Matrix {
-        val cc = encrypted.times(P.inverse())
+        val cc = encrypted.times(P.inverse()).asBinary
 
         val H = Matrix.constructWithCopy(
                 arrayOf(
@@ -76,13 +71,13 @@ class McEliece {
 
         val code = Matrix(
                 arrayOf(
-                        DoubleArray(4) {
+                        DoubleArray(k) {
                             cc[0, it]
                         }
                 )
         )
 
-        return code.times(S.transpose())
+        return code.times(S.inverse()).asBinary
 
     }
 
@@ -93,7 +88,7 @@ class McEliece {
                         doubleArrayOf(1.0, 0.0, 0.0, 0.0, 1.0, 1.0, 0.0),
                         doubleArrayOf(0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0),
                         doubleArrayOf(0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 1.0),
-                        doubleArrayOf(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0)))
+                        doubleArrayOf(0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0))).asBinary
 
 /*        S = Matrix.constructWithCopy(
                 arrayOf(
@@ -104,9 +99,11 @@ class McEliece {
                 )
         )*/
 
+        val random = Random()
+
+
         S = zerosMatrix(k, k)
 
-        val random = Random()
         do {
             for (i in 0 until k * k) {
                 val rowInd = i / k
@@ -129,7 +126,6 @@ class McEliece {
 
         P = zerosMatrix(n, n)
 
-
         val columnsIsBusy = MutableList(n) {
             false
         }
@@ -142,7 +138,7 @@ class McEliece {
             columnsIsBusy[colInd] = true
         }
 
-        openG = S.times(G).times(P).asBinary
+        openG = S.times(G).asBinary.times(P).asBinary
 
     }
 
